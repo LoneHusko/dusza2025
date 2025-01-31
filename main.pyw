@@ -1,18 +1,12 @@
-import sys
 import ctypes
-import json
-import os.path
-import time
-import traceback
-from threading import Thread
+import sys
 from queue import Queue
-import subprocess
+
 from PySide6 import QtCore
 from PySide6.QtCore import QMetaObject, QObject, Slot
-from PySide6.QtGui import Qt, QPalette, QColor, QDoubleValidator, QIntValidator
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, \
-    QStyleFactory, QHBoxLayout, QFileDialog, QListWidget, QSpacerItem, QSizePolicy, QFrame, QLineEdit, QMessageBox, \
-    QProgressBar
+from PySide6.QtGui import Qt, QPalette, QColor
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QStyleFactory, QHBoxLayout, \
+    QFileDialog, QFrame, QMessageBox
 
 scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 

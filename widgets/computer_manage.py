@@ -1,9 +1,10 @@
-import sys, os, ctypes
+import ctypes
+import os
+import sys
 
-from PySide6.QtGui import Qt, QPalette, QColor, QDoubleValidator, QIntValidator
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, \
-    QStyleFactory, QHBoxLayout, QFileDialog, QListWidget, QSpacerItem, QSizePolicy, QFrame, QLineEdit, QMessageBox, \
-    QProgressBar
+from PySide6.QtGui import Qt, QPalette, QColor, QIntValidator
+from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QComboBox, QLabel, \
+    QStyleFactory, QFrame, QLineEdit, QMessageBox
 
 from modules.models import State, Computer
 
@@ -83,6 +84,7 @@ class ComputerAdd(QFrame):
         self.memory.clear()
         self.processor.clear()
 
+
 class ComputerRemove(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
@@ -99,7 +101,6 @@ class ComputerRemove(QFrame):
         self.pc_name = QComboBox(self)
         self.update_list()
         self.layout.addWidget(self.pc_name)
-
 
         self.delete_button = QPushButton("Törlés")
         self.delete_button.clicked.connect(self.delete_computer)
@@ -126,7 +127,8 @@ class ComputerRemove(QFrame):
         for f in self.cluster.computers[index].processes:
             if f.active:
                 no_hiba = False
-            lista[f.name] = f"A {f.name} program aktiválva lett: {f.started_at}-kor\n\tStátusza: {"Aktív" if f.active else "Inaktív"}"
+            lista[
+                f.name] = f"A {f.name} program aktiválva lett: {f.started_at}-kor\n\tStátusza: {"Aktív" if f.active else "Inaktív"}"
         if no_hiba:
             self.cluster.computers.pop(index)
             self.cluster.write_to_path(self.cluster_path)

@@ -1,12 +1,14 @@
-import sys, os, ctypes, random, string, datetime
+import ctypes
+import datetime
+import random
+import string
+import sys
 
-from PySide6.QtGui import Qt, QPalette, QColor, QDoubleValidator, QIntValidator
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, \
-    QStyleFactory, QHBoxLayout, QFileDialog, QListWidget, QSpacerItem, QSizePolicy, QFrame, QLineEdit, QMessageBox, \
-    QProgressBar
-from pyexpat.errors import messages
+from PySide6.QtGui import Qt, QPalette, QColor, QIntValidator
+from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QComboBox, QLabel, \
+    QStyleFactory, QListWidget, QFrame, QLineEdit, QMessageBox
 
-from modules.models import State, Computer, ProcessState
+from modules.models import State, ProcessState
 
 scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
@@ -281,7 +283,6 @@ class RunProgram(QFrame):
         )
 
         self.update_list()
-
 
 
 if __name__ == "__main__":
