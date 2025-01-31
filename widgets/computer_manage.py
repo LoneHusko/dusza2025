@@ -25,13 +25,13 @@ class ComputerAdd(QFrame):
         self.layout.addWidget(QLabel("Számítógép neve"))
         self.layout.addWidget(self.pc_name)
 
-        self.layout.addWidget(QLabel("Memória kapacitás"))
+        self.layout.addWidget(QLabel("Memória kapacitás (MB)"))
 
         self.memory = QLineEdit(self)
         self.memory.setValidator(QIntValidator())
         self.layout.addWidget(self.memory)
 
-        self.layout.addWidget(QLabel("Processzot kapacitás"))
+        self.layout.addWidget(QLabel("Processzor kapacitás (millimag)"))
 
         self.processor = QLineEdit(self)
         self.processor.setValidator(QIntValidator())

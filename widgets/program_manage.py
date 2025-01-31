@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, Q
     QProgressBar
 from pyexpat.errors import messages
 
-from modules.models import State, Computer
+from modules.models import State, Computer, ProcessState
 
 scaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
 
@@ -101,10 +101,12 @@ class EditProgram(QFrame):
         self.memory.clear()
         self.processor.clear()
         self.cluster = State().read_from_path(self.cluster_path)
+        self.program_list.currentIndexChanged.disconnect()
         self.program_list.clear()
         self.program_list.addItem("", None)
         for key, i in enumerate(self.cluster.cluster_processes):
             self.program_list.addItem(i.name, key)
+        self.program_list.currentIndexChanged.connect(self.set_values)
 
     def set_values(self, index):
         if index:
@@ -179,21 +181,34 @@ class RunProgram(QFrame):
         self.memory_usage = QLabel()
         self.layout.addWidget(self.memory_usage)
 
+        self.memory = 0
+        self.processor = 0
+
         self.update_list()
+
+        self.save_button = QPushButton("Indítás")
+        self.layout.addWidget(self.save_button)
+        self.save_button.clicked.connect(self.save)
 
     def update_list(self):
         self.cluster = State().read_from_path(self.cluster_path)
         self.computer_list.clear()
         computer_options = [i.name for i in self.cluster.computers]
+        self.computer_list.addItem("", None)
+        for key, i in enumerate(computer_options):
+            self.computer_list.addItem(i, key)
 
+        self.program_list.currentIndexChanged.disconnect()
         self.program_list.clear()
         self.program_list.addItem("", None)
         for key, i in enumerate(self.cluster.cluster_processes):
             self.program_list.addItem(i.name, key)
+        self.program_list.currentIndexChanged.connect(self.set_value)
 
     def set_value(self, index):
         if index:
             index -= 1
+            self.cluster = State().read_from_path(self.cluster_path)
             process = self.cluster.cluster_processes[index]
             uid = ""
             while uid == "":
@@ -209,11 +224,64 @@ class RunProgram(QFrame):
             self.created_at.setText(str(datetime.datetime.strftime(datetime.datetime.now(), "%Y.%m.%d %H:%M")))
             self.processor_usage.setText(f"{process.processor} millimag")
             self.memory_usage.setText(f"{process.memory} MB")
+
+            self.memory = process.memory
+            self.processor = process.processor
         else:
             self.unique_id.clear()
             self.created_at.clear()
             self.processor_usage.clear()
             self.memory_usage.clear()
+
+            self.memory = 0
+            self.processor = 0
+
+    def save(self):
+        if not self.computer_list.currentText() or not self.program_list.currentText():
+            QMessageBox.warning(
+                self,
+                "Hiba",
+                "Nincs számítógép vagy program kiválasztva"
+            )
+            return
+        current = self.computer_list.currentIndex() - 1
+
+        computer_data = self.cluster.computers[current]
+        if sum(x.memory_usage for x in computer_data.processes) + self.memory > computer_data.memory_capacity:
+            QMessageBox.critical(
+                self,
+                "Hiba",
+                "Nincs elég memória kapacitás"
+            )
+            return
+        if sum(x.processor_usage for x in computer_data.processes) + self.processor > computer_data.processor_capacity:
+            QMessageBox.critical(
+                self,
+                "Hiba",
+                "Nincs elég proszesszor kapacitás"
+            )
+            return
+
+        computer_data.processes.append(
+            ProcessState(
+                name=self.program_list.currentText(),
+                uid=self.unique_id.text(),
+                started_at=datetime.datetime.fromisoformat(self.created_at.text().replace(" ", "T").replace(".", "-")),
+                memory_usage=self.memory,
+                processor_usage=self.processor,
+                active=True
+            )
+        )
+        self.cluster.write_to_path(self.cluster_path)
+
+        QMessageBox.information(
+            self,
+            "Mentve",
+            "Folyamat sikeresen elindítva"
+        )
+
+        self.update_list()
+
 
 
 if __name__ == "__main__":
