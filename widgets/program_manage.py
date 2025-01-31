@@ -1,4 +1,4 @@
-import sys, os, ctypes
+import sys, os, ctypes, random, string, datetime
 
 from PySide6.QtGui import Qt, QPalette, QColor, QDoubleValidator, QIntValidator
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, \
@@ -142,10 +142,84 @@ class EditProgram(QFrame):
         self.update_list()
 
 
+class RunProgram(QFrame):
+    def __init__(self, cluster_path="../cluster0"):
+        super().__init__()
+        self.cluster_path = cluster_path
+        self.cluster = State().read_from_path(cluster_path)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.setFixedWidth(300 * scaleFactor)
+
+        self.layout.addWidget(QLabel("<h1>Program futtattása</h1>"))
+
+        self.layout.addWidget(QLabel("Számítógép neve"))
+        self.computer_list = QComboBox()
+        self.layout.addWidget(self.computer_list)
+
+        self.layout.addWidget(QLabel("Program neve"))
+        self.program_list = QComboBox()
+        self.layout.addWidget(self.program_list)
+        self.program_list.currentIndexChanged.connect(self.set_value)
+
+        self.layout.addWidget(QLabel("Egyedi azonosító"))
+        self.unique_id = QLabel()
+        self.layout.addWidget(self.unique_id)
+
+        self.layout.addWidget(QLabel("Létrehozva"))
+        self.created_at = QLabel()
+        self.layout.addWidget(self.created_at)
+
+        self.layout.addWidget(QLabel("Max processzor használat"))
+        self.processor_usage = QLabel()
+        self.layout.addWidget(self.processor_usage)
+
+        self.layout.addWidget(QLabel("Max memória használat"))
+        self.memory_usage = QLabel()
+        self.layout.addWidget(self.memory_usage)
+
+        self.update_list()
+
+    def update_list(self):
+        self.cluster = State().read_from_path(self.cluster_path)
+        self.computer_list.clear()
+        computer_options = [i.name for i in self.cluster.computers]
+
+        self.program_list.clear()
+        self.program_list.addItem("", None)
+        for key, i in enumerate(self.cluster.cluster_processes):
+            self.program_list.addItem(i.name, key)
+
+    def set_value(self, index):
+        if index:
+            index -= 1
+            process = self.cluster.cluster_processes[index]
+            uid = ""
+            while uid == "":
+                for i in range(6):
+                    uid += random.choice(string.ascii_lowercase)
+                uids = []
+                for i in self.cluster.computers:
+                    for x in i.processes:
+                        uids.append(x.uid)
+                if uid in uids:
+                    uid = ""
+            self.unique_id.setText(uid)
+            self.created_at.setText(str(datetime.datetime.strftime(datetime.datetime.now(), "%Y.%m.%d %H:%M")))
+            self.processor_usage.setText(f"{process.processor} millimag")
+            self.memory_usage.setText(f"{process.memory} MB")
+        else:
+            self.unique_id.clear()
+            self.created_at.clear()
+            self.processor_usage.clear()
+            self.memory_usage.clear()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle(QStyleFactory.create("Fusion"))
     app.setPalette(QPalette(QColor("#2b2d30")))
-    window = EditProgram()
+    window = RunProgram()
     window.show()
     app.exec()
