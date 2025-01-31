@@ -106,6 +106,14 @@ if __name__ == "__main__":
     app.setPalette(QPalette(QColor("#2b2d30")))
     cluster_path = QFileDialog.getExistingDirectory(caption="Válaszd ki a klaszter mappát")
 
+    if not cluster_path:
+        QMessageBox.critical(
+            None,
+            "Hiba",
+            "Nincs klaszter kiválasztva"
+        )
+        sys.exit(1)
+
     from widgets import computer_manage, program_manage
 
     widgets: {str, QWidget} = {
