@@ -38,7 +38,7 @@ invoker = Invoker()
 
 
 def invoke_in_main_thread(func, *args, **kwargs):
-    invoker.invoke(func,*args, **kwargs)
+    invoker.invoke(func, *args, **kwargs)
 
 
 class MainWindow(QMainWindow):
@@ -52,9 +52,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.central_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.sidebar = QWidget(self)
+        self.sidebar = QFrame(self)
+        self.sidebar.setStyleSheet("QFrame{background-color: #1e1f22; border-radius: 5px}")
         self.sidebar_layout = QVBoxLayout(self.sidebar)
-        self.sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.sidebar.setFixedWidth(200 * scaleFactor)
         self.sidebar.setLayout(self.sidebar_layout)
         self.central_layout.addWidget(self.sidebar)
@@ -64,24 +65,39 @@ class MainWindow(QMainWindow):
             widgets[i].setVisible(False)
 
         self.computer_add_button = QPushButton("Számítógép hozzáadása")
-        self.computer_add_button.clicked.connect(lambda: self.switch_widget("computer.add"))
+        self.computer_add_button.clicked.connect(lambda: self.switch_widget("computer.add", self.computer_add_button))
         self.sidebar_layout.addWidget(self.computer_add_button)
 
         self.computer_remove_button = QPushButton("Számítógép törlése")
-        self.computer_remove_button.clicked.connect(lambda: self.switch_widget("computer.delete"))
+        self.computer_remove_button.clicked.connect(
+            lambda: self.switch_widget("computer.delete", self.computer_remove_button))
         self.sidebar_layout.addWidget(self.computer_remove_button)
 
-        self.program_stop_button = QPushButton("Program leállítása")
-        self.program_stop_button.clicked.connect(lambda: self.switch_widget("program.stop"))
+        self.program_stop_button = QPushButton("Program végleges leállítása")
+        self.program_stop_button.clicked.connect(lambda: self.switch_widget("program.stop", self.program_stop_button))
         self.sidebar_layout.addWidget(self.program_stop_button)
 
-    def switch_widget(self, widget_name):
+        self.program_edit_button = QPushButton("Program módosítása")
+        self.program_edit_button.clicked.connect(lambda: self.switch_widget("program.edit", self.program_edit_button))
+        self.sidebar_layout.addWidget(self.program_edit_button)
+
+        self.program_start_button = QPushButton("Új folyamat")
+        self.program_start_button.clicked.connect(lambda: self.switch_widget("program.run", self.program_start_button))
+        self.sidebar_layout.addWidget(self.program_start_button)
+
+    def switch_widget(self, widget_name, obj):
+        children = []
+        for i in range(self.sidebar_layout.count()):
+            child = self.sidebar_layout.itemAt(i).widget()
+            if child:
+                children.append(child)
+        for child in children:
+            child.setStyleSheet("font-weight: initial")
+        obj.setStyleSheet("font-weight: bold")
         for i in widgets.keys():
             widgets[i].setVisible(False)
         widgets[widget_name].setVisible(True)
         widgets[widget_name].update_list()
-
-
 
 
 if __name__ == "__main__":
@@ -91,10 +107,13 @@ if __name__ == "__main__":
     cluster_path = QFileDialog.getExistingDirectory(caption="Válaszd ki a klaszter mappát")
 
     from widgets import computer_manage, program_manage
+
     widgets: {str, QWidget} = {
         "computer.add": computer_manage.ComputerAdd(cluster_path),
         "computer.delete": computer_manage.ComputerRemove(cluster_path),
         "program.stop": program_manage.StopProgram(cluster_path),
+        "program.edit": program_manage.EditProgram(cluster_path),
+        "program.run": program_manage.RunProgram(cluster_path),
     }
 
     window = MainWindow()
