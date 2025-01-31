@@ -78,6 +78,10 @@ class ComputerAdd(QFrame):
         self.memory.clear()
         self.processor.clear()
 
+    def update_list(self):
+        self.pc_name.clear()
+        self.memory.clear()
+        self.processor.clear()
 
 class ComputerRemove(QFrame):
     def __init__(self, cluster_path="../cluster0"):
@@ -139,7 +143,6 @@ class ComputerRemove(QFrame):
             )
 
         self.update_list()
-
 
 
 if __name__ == "__main__":

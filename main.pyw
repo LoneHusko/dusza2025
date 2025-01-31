@@ -71,12 +71,16 @@ class MainWindow(QMainWindow):
         self.computer_remove_button.clicked.connect(lambda: self.switch_widget("computer.delete"))
         self.sidebar_layout.addWidget(self.computer_remove_button)
 
+        self.program_stop_button = QPushButton("Program leállítása")
+        self.program_stop_button.clicked.connect(lambda: self.switch_widget("program.stop"))
+        self.sidebar_layout.addWidget(self.program_stop_button)
+
     def switch_widget(self, widget_name):
         for i in widgets.keys():
             widgets[i].setVisible(False)
         widgets[widget_name].setVisible(True)
-        if widget_name == "computer.delete":
-            widgets[widget_name].update_list()
+        widgets[widget_name].update_list()
+
 
 
 
@@ -86,10 +90,11 @@ if __name__ == "__main__":
     app.setPalette(QPalette(QColor("#2b2d30")))
     cluster_path = QFileDialog.getExistingDirectory(caption="Válaszd ki a klaszter mappát")
 
-    from widgets import computer_manage
+    from widgets import computer_manage, program_manage
     widgets: {str, QWidget} = {
         "computer.add": computer_manage.ComputerAdd(cluster_path),
         "computer.delete": computer_manage.ComputerRemove(cluster_path),
+        "program.stop": program_manage.StopProgram(cluster_path),
     }
 
     window = MainWindow()
