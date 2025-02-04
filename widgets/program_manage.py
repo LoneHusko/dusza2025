@@ -4,9 +4,10 @@ import random
 import string
 import sys
 
+from PySide6.QtCore import QAbstractItemModel
 from PySide6.QtGui import Qt, QPalette, QColor, QIntValidator
 from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QComboBox, QLabel, \
-    QStyleFactory, QListWidget, QFrame, QLineEdit, QMessageBox
+    QStyleFactory, QListWidget, QFrame, QLineEdit, QMessageBox, QCompleter, QWidget, QScrollArea, QSplitter
 
 from modules.models import State, ProcessState
 
@@ -354,10 +355,71 @@ class StopProcess(QFrame):
         self.update_list()
 
 
+class SearchProcess(QFrame):
+    def __init__(self, cluster_path="../cluster0"):
+        super().__init__()
+        self.cluster_path = cluster_path
+        self.cluster = State().read_from_path(cluster_path)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.setFixedWidth(300 * scaleFactor)
+
+        self.layout.addWidget(QLabel("<h1>Folyamat keresése</h1>"))
+        self.process_list = QLineEdit()
+        self.process_list.setPlaceholderText("Keresés")
+        self.process_list.textEdited.connect(self.search)
+        self.process_list.setClearButtonEnabled(True)
+        self.layout.addWidget(self.process_list)
+
+        self.result_window = QWidget()
+        self.result_window.setLayout(QVBoxLayout())
+        self.layout.addWidget(self.result_window)
+
+    def update_list(self):
+        self.search("")
+        self.process_list.setFocus()
+
+    def search(self, text):
+        # Clear the result window
+        # Store the widget as an instance attribute
+        layout = self.result_window.layout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        for i in reversed(range(layout.count())):
+            layout.itemAt(i).widget().deleteLater()
+
+        # Scroll area setup
+        scroll_area = QScrollArea()
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        scroll_area.setWidget(content_widget)
+        scroll_area.setWidgetResizable(True)
+
+        # Read cluster data
+        self.cluster = State().read_from_path(self.cluster_path)
+        for computer in self.cluster.computers:
+            for process in computer.processes:
+                if process.name.startswith(text):
+                    content_layout.addWidget(QLabel(f"<h3>{process.name}</h3>"))
+                    content_layout.addWidget(QLabel(f"Azonosító: {process.uid}"))
+                    content_layout.addWidget(QLabel(f"Memória igény: {process.memory_usage} MB"))
+                    content_layout.addWidget(QLabel(f"Processzor igény: {process.processor_usage} millimag"))
+                    content_layout.addWidget(QLabel(f"Státusz: {'Aktív' if process.active else 'Inaktív'}"))
+                    content_layout.addWidget(QLabel(f"Elindítva: {process.started_at.isoformat(' ').split('T')[0].replace('-', '. ')}"))
+                    content_layout.addWidget(QLabel(f"Számítógép: {computer.name}"))
+                    content_layout.addWidget(QLabel("<hr>"))
+        scroll_area.setWidget(content_widget)
+        scroll_area.setWidgetResizable(True)
+        layout.addWidget(scroll_area)
+
+        # Final widget display settings
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle(QStyleFactory.create("Fusion"))
     app.setPalette(QPalette(QColor("#2b2d30")))
-    window = StopProcess()
+    window = SearchProcess()
     window.show()
     app.exec()

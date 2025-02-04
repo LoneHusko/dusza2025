@@ -83,6 +83,10 @@ class MainWindow(QMainWindow):
         self.process_stop_button.clicked.connect(lambda: self.switch_widget("process.stop", self.process_stop_button))
         self.sidebar_layout.addWidget(self.process_stop_button)
 
+        self.process_search_button = QPushButton("Folyamat keresése")
+        self.process_search_button.clicked.connect(lambda: self.switch_widget("process.search", self.process_search_button))
+        self.sidebar_layout.addWidget(self.process_search_button)
+
     def switch_widget(self, widget_name, obj):
         children = []
         for i in range(self.sidebar_layout.count()):
@@ -121,6 +125,7 @@ if __name__ == "__main__":
         "program.edit": program_manage.EditProgram(cluster_path),
         "program.run": program_manage.RunProgram(cluster_path),
         "process.stop": program_manage.StopProcess(cluster_path),
+        "process.search": program_manage.SearchProcess(cluster_path),
     }
 
     window = MainWindow()
