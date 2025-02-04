@@ -58,6 +58,10 @@ class MainWindow(QMainWindow):
             self.central_layout.addWidget(widgets[i])
             widgets[i].setVisible(False)
 
+        self.home_button = QPushButton("Főoldal")
+        self.home_button.clicked.connect(lambda: self.switch_widget("home", self.home_button))
+        self.sidebar_layout.addWidget(self.home_button)
+
         self.computer_add_button = QPushButton("Számítógép hozzáadása")
         self.computer_add_button.clicked.connect(lambda: self.switch_widget("computer.add", self.computer_add_button))
         self.sidebar_layout.addWidget(self.computer_add_button)
@@ -86,6 +90,8 @@ class MainWindow(QMainWindow):
         self.process_search_button = QPushButton("Folyamat keresése")
         self.process_search_button.clicked.connect(lambda: self.switch_widget("process.search", self.process_search_button))
         self.sidebar_layout.addWidget(self.process_search_button)
+
+        self.switch_widget("home", self.home_button)
 
     def switch_widget(self, widget_name, obj):
         children = []
@@ -116,7 +122,7 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    from widgets import computer_manage, program_manage
+    from widgets import computer_manage, program_manage, home
 
     widgets: {str, QWidget} = {
         "computer.add": computer_manage.ComputerAdd(cluster_path),
@@ -126,6 +132,7 @@ if __name__ == "__main__":
         "program.run": program_manage.RunProgram(cluster_path),
         "process.stop": program_manage.StopProcess(cluster_path),
         "process.search": program_manage.SearchProcess(cluster_path),
+        "home": home.Home(cluster_path),
     }
 
     window = MainWindow()
