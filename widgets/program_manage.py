@@ -38,13 +38,12 @@ class StopProgram(QFrame):
         self.running_processes.clear()
         self.cluster = State().read_from_path(self.cluster_path)
         for i, program in enumerate(self.cluster.cluster_processes):
-            self.running_processes.addItem(f"{i}: {program.name}")
+            self.running_processes.addItem(f"{program.name}")
 
     def stop(self):
         messages = []
         for i in self.running_processes.selectedItems():
-            choice = int(i.text().split(":")[0])
-            chosen_program = self.cluster.cluster_processes[choice]
+            chosen_program = [i.name for i in self.cluster.cluster_processes if i.name == i.text()][0]
             self.cluster.cluster_processes.remove(chosen_program)
 
             for computer in self.cluster.computers:
@@ -285,10 +284,80 @@ class RunProgram(QFrame):
         self.update_list()
 
 
+class StopProcess(QFrame):
+    def __init__(self, cluster_path="../cluster0"):
+        super().__init__()
+        self.cluster_path = cluster_path
+        self.cluster = State().read_from_path(cluster_path)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.setFixedWidth(300 * scaleFactor)
+
+        self.layout.addWidget(QLabel("<h1>Folyamat leállítása</h1>"))
+        self.computer_list = QComboBox()
+        self.layout.addWidget(self.computer_list)
+        self.computer_list.currentIndexChanged.connect(self.set_value)
+
+        self.layout.addWidget(QLabel("Folyamat neve"))
+        self.process_list = QListWidget()
+        self.layout.addWidget(self.process_list)
+        self.process_list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+
+        self.update_list()
+        self.stop_button = QPushButton("Leállítás")
+        self.layout.addWidget(self.stop_button)
+        self.stop_button.clicked.connect(self.stop)
+
+    def update_list(self):
+        self.computer_list.currentIndexChanged.disconnect()
+        self.cluster = State().read_from_path(self.cluster_path)
+        self.computer_list.clear()
+        computer_options = [i.name for i in self.cluster.computers]
+        self.computer_list.addItem("", None)
+        for key, i in enumerate(computer_options):
+            self.computer_list.addItem(i, key)
+        self.process_list.clear()
+        self.computer_list.currentIndexChanged.connect(self.set_value)
+
+    def set_value(self, index):
+        if index != 0:
+            self.process_list.clear()
+            index -= 1
+            self.cluster = State().read_from_path(self.cluster_path)
+            current_computer_processes = [i.processes for i in self.cluster.computers if i.name == self.computer_list.currentText()]
+            if len(current_computer_processes[0]) == 0:
+                return
+            processes = current_computer_processes[0]
+            self.process_list.clear()
+            for i in processes:
+                self.process_list.addItem(f"{i.name} - {i.uid}")
+        else:
+            self.process_list.clear()
+
+    def stop(self):
+        messages = []
+        for i in self.process_list.selectedItems():
+            name = i.text().split(" - ")[0]
+            uid = i.text().split(" - ")[1]
+            chosen_computer = [y for y in self.cluster.computers if y.name == self.computer_list.currentText()][0]
+            chosen_program = [x for x in chosen_computer.processes if x.name == name and x.uid == uid][0]
+            chosen_computer.processes.remove(chosen_program)
+            self.cluster.write_to_path(self.cluster_path)
+            messages.append(f"{chosen_program.name} sikeresen leállítva!")
+
+        QMessageBox.information(
+            self,
+            "Sikeres művelet",
+            "\n".join(messages),
+        )
+        self.update_list()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle(QStyleFactory.create("Fusion"))
     app.setPalette(QPalette(QColor("#2b2d30")))
-    window = RunProgram()
+    window = StopProcess()
     window.show()
     app.exec()
