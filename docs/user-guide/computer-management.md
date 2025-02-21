@@ -10,9 +10,9 @@ A klaszterhez új számítógép hozzáadásához kövesse az alábbi lépéseke
 
 1. Kattintson a "Számítógép hozzáadása" gombra a bal oldali menüben
 2. Adja meg a számítógép adatait:
-   - Név
-   - IP cím vagy hálózati azonosító
-   - Egyéb szükséges konfigurációs paraméterek
+   - Számítógép neve
+   - Memória kapacitás
+   - Processzor kapacitás
 3. Kattintson a "Mentés" gombra
 
 ![Számítógép hozzáadása képernyő](../images/computer-add.png)
@@ -42,9 +42,10 @@ Meglévő számítógép eltávolításához:
 ### Gyakori problémák
 
 1. **Duplikált név**
+
    - Válasszon másik nevet
    - Ellenőrizze a meglévő gépek listáját
 
 2. **Jogosultsági problémák**
    - Ellenőrizze a felhasználói jogosultságokat
-   - Szükség esetén kérjen adminisztrátori hozzáférést 
+   - Szükség esetén kérjen adminisztrátori hozzáférést
