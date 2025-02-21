@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Dusza2025")
-        self.setStyleSheet("font-size: 16px")
+        self.setStyleSheet(f"font-size: {str(12 * scaleFactor)}px")
         self.setFixedSize(720 * scaleFactor, 480 * scaleFactor)
         self.central_widget = QWidget(self)
         self.central_layout = QHBoxLayout(self.central_widget)

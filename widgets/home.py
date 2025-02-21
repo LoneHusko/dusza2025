@@ -16,9 +16,6 @@ class Home(QFrame):
         super().__init__()
         self.cluster_path = cluster_path
 
-        self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
-
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -31,7 +28,7 @@ class Home(QFrame):
         self.layout.addWidget(self.label)
 
     def update_list(self):
-        osszes = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
 
         programok = {}
         prog_szam_active = {}
@@ -41,12 +38,12 @@ class Home(QFrame):
 
         errors = []
 
-        for i in osszes.cluster_processes:
+        for i in cluster.cluster_processes:
             programok[i.name] = i.count
             prog_szam_active[i.name] = 0
             prog_szam_inactive[i.name] = 0
 
-        for f in osszes.computers:
+        for f in cluster.computers:
             processor = f.processor_capacity
             memory = f.memory_capacity
 
