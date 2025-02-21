@@ -16,9 +16,6 @@ class Home(QFrame):
         super().__init__()
         self.cluster_path = cluster_path
 
-        self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
-
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)

@@ -15,7 +15,6 @@ class ComputerAdd(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
 
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -47,7 +46,7 @@ class ComputerAdd(QFrame):
         self.setFixedWidth(300 * scaleFactor)
 
     def save(self):
-        self.cluster = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
         if not self.pc_name.text() or not self.memory.text() or not self.processor.text() or not self.pc_name.text().isalnum():
             QMessageBox.critical(
                 self,
@@ -64,12 +63,12 @@ class ComputerAdd(QFrame):
             )
             return
 
-        self.cluster.computers.append(Computer(
+        cluster.computers.append(Computer(
             name=self.pc_name.text(),
             processor_capacity=self.processor.text(),
             memory_capacity=self.memory.text(),
         ))
-        self.cluster.write_to_path(self.cluster_path)
+        cluster.write_to_path(self.cluster_path)
         QMessageBox.information(
             self,
             "Mentve",
@@ -89,7 +88,7 @@ class ComputerRemove(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
+        cluster = State().read_from_path(cluster_path)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -107,13 +106,14 @@ class ComputerRemove(QFrame):
         self.layout.addWidget(self.delete_button)
 
     def update_list(self):
-        self.cluster = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
         self.pc_name.clear()
         self.pc_name.addItem("", None)
-        for key, i in enumerate(self.cluster.computers):
+        for key, i in enumerate(cluster.computers):
             self.pc_name.addItem(i.name, key)
 
     def delete_computer(self):
+        cluster = State().read_from_path(self.cluster_path)
         if not self.pc_name.currentIndex():
             QMessageBox.critical(
                 self,
@@ -124,14 +124,14 @@ class ComputerRemove(QFrame):
         lista = {}
         index = self.pc_name.itemData(self.pc_name.currentIndex())
         no_hiba = True
-        for f in self.cluster.computers[index].processes:
+        for f in cluster.computers[index].processes:
             if f.active:
                 no_hiba = False
             lista[
                 f.name] = f"A {f.name} program aktiválva lett: {f.started_at}-kor\n\tStátusza: {"Aktív" if f.active else "Inaktív"}"
         if no_hiba:
-            self.cluster.computers.pop(index)
-            self.cluster.write_to_path(self.cluster_path)
+            cluster.computers.pop(index)
+            cluster.write_to_path(self.cluster_path)
             QMessageBox.information(
                 self,
                 "Mentve",

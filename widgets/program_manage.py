@@ -18,7 +18,6 @@ class StopProgram(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -37,20 +36,21 @@ class StopProgram(QFrame):
 
     def update_list(self):
         self.running_processes.clear()
-        self.cluster = State().read_from_path(self.cluster_path)
-        for i, program in enumerate(self.cluster.cluster_processes):
+        cluster = State().read_from_path(self.cluster_path)
+        for i, program in enumerate(cluster.cluster_processes):
             self.running_processes.addItem(f"{program.name}")
 
     def stop(self):
         messages = []
+        cluster = State().read_from_path(self.cluster_path)
         for i in self.running_processes.selectedItems():
-            chosen_program = [i.name for i in self.cluster.cluster_processes if i.name == i.text()][0]
-            self.cluster.cluster_processes.remove(chosen_program)
+            chosen_program = [i.name for i in cluster.cluster_processes if i.name == i.text()][0]
+            cluster.cluster_processes.remove(chosen_program)
 
-            for computer in self.cluster.computers:
+            for computer in cluster.computers:
                 computer.processes = [i for i in computer.processes if i.name != chosen_program.name]
 
-            self.cluster.write_to_path(self.cluster_path)
+            cluster.write_to_path(self.cluster_path)
             messages.append(f"{chosen_program.name} sikeresen leállítva!")
 
         QMessageBox.information(
@@ -65,7 +65,7 @@ class EditProgram(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -102,18 +102,19 @@ class EditProgram(QFrame):
         self.program_count.clear()
         self.memory.clear()
         self.processor.clear()
-        self.cluster = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
         self.program_list.currentIndexChanged.disconnect()
         self.program_list.clear()
         self.program_list.addItem("", None)
-        for key, i in enumerate(self.cluster.cluster_processes):
+        for key, i in enumerate(cluster.cluster_processes):
             self.program_list.addItem(i.name, key)
         self.program_list.currentIndexChanged.connect(self.set_values)
 
     def set_values(self, index):
+        cluster = State().read_from_path(self.cluster_path)
         if index:
             index -= 1
-            process = self.cluster.cluster_processes[index]
+            process = cluster.cluster_processes[index]
             self.program_count.setText(str(process.count))
             self.processor.setText(str(process.processor))
             self.memory.setText(str(process.memory))
@@ -131,12 +132,12 @@ class EditProgram(QFrame):
             )
             return
 
-        self.cluster = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
         current = self.program_list.currentIndex() - 1
-        self.cluster.cluster_processes[current].count = int(self.program_count.text())
-        self.cluster.cluster_processes[current].processor = int(self.processor.text())
-        self.cluster.cluster_processes[current].memory = int(self.memory.text())
-        self.cluster.write_to_path(self.cluster_path)
+        cluster.cluster_processes[current].count = int(self.program_count.text())
+        cluster.cluster_processes[current].processor = int(self.processor.text())
+        cluster.cluster_processes[current].memory = int(self.memory.text())
+        cluster.write_to_path(self.cluster_path)
 
         QMessageBox.information(
             self,
@@ -150,7 +151,7 @@ class RunProgram(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
+        cluster = State().read_from_path(cluster_path)
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -193,9 +194,9 @@ class RunProgram(QFrame):
         self.save_button.clicked.connect(self.save)
 
     def update_list(self):
-        self.cluster = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
         self.computer_list.clear()
-        computer_options = [i.name for i in self.cluster.computers]
+        computer_options = [i.name for i in cluster.computers]
         self.computer_list.addItem("", None)
         for key, i in enumerate(computer_options):
             self.computer_list.addItem(i, key)
@@ -203,21 +204,21 @@ class RunProgram(QFrame):
         self.program_list.currentIndexChanged.disconnect()
         self.program_list.clear()
         self.program_list.addItem("", None)
-        for key, i in enumerate(self.cluster.cluster_processes):
+        for key, i in enumerate(cluster.cluster_processes):
             self.program_list.addItem(i.name, key)
         self.program_list.currentIndexChanged.connect(self.set_value)
 
     def set_value(self, index):
         if index:
             index -= 1
-            self.cluster = State().read_from_path(self.cluster_path)
-            process = self.cluster.cluster_processes[index]
+            cluster = State().read_from_path(self.cluster_path)
+            process = cluster.cluster_processes[index]
             uid = ""
             while uid == "":
                 for i in range(6):
                     uid += random.choice(string.ascii_lowercase)
                 uids = []
-                for i in self.cluster.computers:
+                for i in cluster.computers:
                     for x in i.processes:
                         uids.append(x.uid)
                 if uid in uids:
@@ -248,7 +249,8 @@ class RunProgram(QFrame):
             return
         current = self.computer_list.currentIndex() - 1
 
-        computer_data = self.cluster.computers[current]
+        cluster = State().read_from_path(self.cluster_path)
+        computer_data = cluster.computers[current]
         if sum(x.memory_usage for x in computer_data.processes) + self.memory > computer_data.memory_capacity:
             QMessageBox.critical(
                 self,
@@ -274,7 +276,7 @@ class RunProgram(QFrame):
                 active=True
             )
         )
-        self.cluster.write_to_path(self.cluster_path)
+        cluster.write_to_path(self.cluster_path)
 
         QMessageBox.information(
             self,
@@ -289,7 +291,7 @@ class StopProcess(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -312,9 +314,9 @@ class StopProcess(QFrame):
 
     def update_list(self):
         self.computer_list.currentIndexChanged.disconnect()
-        self.cluster = State().read_from_path(self.cluster_path)
+        cluster = State().read_from_path(self.cluster_path)
         self.computer_list.clear()
-        computer_options = [i.name for i in self.cluster.computers]
+        computer_options = [i.name for i in cluster.computers]
         self.computer_list.addItem("", None)
         for key, i in enumerate(computer_options):
             self.computer_list.addItem(i, key)
@@ -325,8 +327,8 @@ class StopProcess(QFrame):
         if index != 0:
             self.process_list.clear()
             index -= 1
-            self.cluster = State().read_from_path(self.cluster_path)
-            current_computer_processes = [i.processes for i in self.cluster.computers if i.name == self.computer_list.currentText()]
+            cluster = State().read_from_path(self.cluster_path)
+            current_computer_processes = [i.processes for i in cluster.computers if i.name == self.computer_list.currentText()]
             if len(current_computer_processes[0]) == 0:
                 return
             processes = current_computer_processes[0]
@@ -338,13 +340,14 @@ class StopProcess(QFrame):
 
     def stop(self):
         messages = []
+        cluster = State().read_from_path(self.cluster_path)
         for i in self.process_list.selectedItems():
             name = i.text().split(" - ")[0]
             uid = i.text().split(" - ")[1]
-            chosen_computer = [y for y in self.cluster.computers if y.name == self.computer_list.currentText()][0]
+            chosen_computer = [y for y in cluster.computers if y.name == self.computer_list.currentText()][0]
             chosen_program = [x for x in chosen_computer.processes if x.name == name and x.uid == uid][0]
             chosen_computer.processes.remove(chosen_program)
-            self.cluster.write_to_path(self.cluster_path)
+            cluster.write_to_path(self.cluster_path)
             messages.append(f"{chosen_program.name} sikeresen leállítva!")
 
         QMessageBox.information(
@@ -359,7 +362,7 @@ class SearchProcess(QFrame):
     def __init__(self, cluster_path="../cluster0"):
         super().__init__()
         self.cluster_path = cluster_path
-        self.cluster = State().read_from_path(cluster_path)
+
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -397,8 +400,8 @@ class SearchProcess(QFrame):
         scroll_area.setWidgetResizable(True)
 
         # Read cluster data
-        self.cluster = State().read_from_path(self.cluster_path)
-        for computer in self.cluster.computers:
+        cluster = State().read_from_path(self.cluster_path)
+        for computer in cluster.computers:
             for process in computer.processes:
                 if process.name.startswith(text):
                     content_layout.addWidget(QLabel(f"<h3>{process.name}</h3>"))
